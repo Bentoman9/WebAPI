@@ -1,5 +1,8 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Immutable;
+using WebAPI.Dtos;
 using WebAPI.Models;
 
 [Route("api/[controller]")]
@@ -7,21 +10,29 @@ using WebAPI.Models;
 public class CursosController : ControllerBase
 {
     private readonly WebAPIContext _context;
-    public CursosController(WebAPIContext context)
+    private readonly IMapper _mapper;
+
+    public CursosController(WebAPIContext context, IMapper mapper)
     {
         _context = context;
+        this._mapper = mapper;
     }
 
     // GET: api/Curso
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Curso>>> GetCurso()
+    public async Task<ActionResult<IEnumerable<CursoDto>>> GetCurso()
     {
-        return await _context.Curso.ToListAsync();
+        var modelos = await _context.Curso.ToListAsync();
+
+        //Traemos lista y devolvemos lista de otro we
+        var dtos = _mapper.Map<List<Curso> , List<CursoDto>>(modelos);
+
+        return dtos;
     }
 
     // GET: api/Curso/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Curso>> GetCurso(int id)
+    public async Task<ActionResult<CursoDto>> GetCurso(int id)
     {
         var curso = await _context.Curso.FindAsync(id);
 
@@ -30,20 +41,25 @@ public class CursosController : ControllerBase
             return NotFound();
         }
 
-        return curso;
+        var dtos = _mapper.Map<Curso, CursoDto>(curso);
+
+        return dtos;
     }
 
     // PUT: api/Curso/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutCurso(int? id, Curso curso)
+    public async Task<IActionResult> PutCurso(int? id, CursoDto cursoDto)
     {
-        if (id != curso.id)
+        if (id != cursoDto.id)
         {
             return BadRequest();
         }
 
-        _context.Entry(curso).State = EntityState.Modified;
+        var cursoDB = await _context.Curso.FindAsync(id);
+        _mapper.Map<CursoDto, Curso>(cursoDto, cursoDB);
+
+        _context.Entry(cursoDto).State = EntityState.Modified;
 
         try
         {
@@ -67,23 +83,29 @@ public class CursosController : ControllerBase
     // POST: api/Curso
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<Curso>> PostCurso(Curso curso)
+    public async Task<ActionResult<Curso>> PostCurso(CursoDto cursoDto)
     {
-        _context.Curso.Add(curso);
+        var cursoDB = _mapper.Map<Curso>(cursoDto);
+
+        _context.Curso.Add(cursoDB);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction("GetCurso", new { id = curso.id }, curso);
+        return CreatedAtAction("GetCurso", new { id = cursoDto.id }, cursoDto);
     }
 
     // DELETE: api/Curso/5
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCurso(int? id)
     {
+
         var curso = await _context.Curso.FindAsync(id);
+
         if (curso == null)
         {
             return NotFound();
         }
+
+        
 
         _context.Curso.Remove(curso);
         await _context.SaveChangesAsync();
