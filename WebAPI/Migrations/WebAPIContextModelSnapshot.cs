@@ -35,9 +35,40 @@ namespace WebAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("NivelId")
+                        .HasColumnType("int");
+
                     b.HasKey("id");
 
+                    b.HasIndex("NivelId");
+
                     b.ToTable("Curso");
+                });
+
+            modelBuilder.Entity("WebAPI.Models.Nivel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Nivel");
+                });
+
+            modelBuilder.Entity("WebAPI.Models.Curso", b =>
+                {
+                    b.HasOne("WebAPI.Models.Nivel", "Nivel")
+                        .WithMany()
+                        .HasForeignKey("NivelId");
+
+                    b.Navigation("Nivel");
                 });
 #pragma warning restore 612, 618
         }

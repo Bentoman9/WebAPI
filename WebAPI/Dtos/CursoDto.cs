@@ -5,5 +5,6 @@
         public int id { get; set; }
         public string Grado { get; set; }
         public int CantidadDeVagos { get; set; }
+        public int? NivelId { get; set; }
     }
 }
